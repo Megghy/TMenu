@@ -5,7 +5,7 @@ namespace TMenu
 {
     internal class Config
     {
-        static Config _instance;
+        internal static Config _instance;
         public static Config Instance
         {
             get

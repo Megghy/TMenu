@@ -1,5 +1,8 @@
-﻿using TerrariaUI.Base;
+﻿using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
+using TerrariaUI.Base;
 using TerrariaUI.Widgets;
+using TShockAPI;
 
 namespace TMenu.Controls
 {
@@ -8,12 +11,19 @@ namespace TMenu.Controls
         public TButton(string name, string text, int x, int y, int width, int height, UIConfiguration configuration = null, ButtonStyle style = null)
         : base(name, x, y, width, height, configuration, style)
         {
-            Text = text;
+            TUIObject = new(x, y, width, height, text, configuration, style, OnClick);
+            _text = text;
         }
-        public override void Init()
+        [JsonIgnore]
+        private string _text = string.Empty;
+        public string Text
         {
-            TUIObject.UpdateText(Text);
+            get => _text; 
+            set
+            {
+                _text = value;
+                TUIObject.UpdateText(value);
+            }
         }
-        public string Text { get; set; }
     }
 }

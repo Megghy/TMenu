@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TerrariaUI.Base;
 using TerrariaUI.Widgets;
+using TShockAPI;
 
 namespace TMenu
 {
@@ -31,5 +32,6 @@ namespace TMenu
             l?.UpdateSelf();
         }
         public static void UpdateSelf(this VisualObject v) => v.Update().Apply().Draw();
+        public static TSPlayer Player(this Touch t) => TShock.Players[t.PlayerIndex];
     }
 }

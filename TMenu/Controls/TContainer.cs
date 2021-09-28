@@ -4,15 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 using TerrariaUI.Widgets;
 
 namespace TMenu.Controls
 {
     internal class TContainer : TMenuControlBase<VisualContainer>
     {
-        public TContainer(string name, int x, int y, int width, int height, UIConfiguration configuration = null, ButtonStyle style = null)
-        : base(name, x, y, width, height, configuration, style) { }
-
-        public List<VisualObject> Childs => TUIObject.Child;
+        public TContainer(string name, int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null)
+        : base(name, x, y, width, height, configuration, style) {
+            var s = new ContainerStyle();
+            s.Stratify(style);
+            TUIObject = new VisualContainer(x, y, width, height, configuration, s, OnClick);
+        }
     }
 }
