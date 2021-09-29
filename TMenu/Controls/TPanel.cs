@@ -8,17 +8,16 @@ using TShockAPI;
 
 namespace TMenu.Controls
 {
-    internal class TPanel : TMenuControlBase<Panel>
+    public class TPanel : TMenuControlBase<Panel>
     {
-        public TPanel(string name, int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null)
-            : base(name, x, y, width, height, configuration, style)
+        public TPanel(string name, int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
+            : base(name, x, y, width, height, configuration, style, clickCommand)
         {
-            var s = new PanelStyle();
-            s.Stratify(style);
-            FakePanel = FakeProviderAPI.CreatePersonalTileProvider(ID.ToString(), new(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
+            FakePanel = FakeProviderAPI.CreatePersonalTileProvider(ID.ToString(), new() { }, TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
             //FakePanel = FakeProviderAPI.CreateTileProvider(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
-            TUIObject = new Panel(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, TempInitInfo.Configuration, s, FakePanel, new());
+            TUIObject = new Panel(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, TempInitInfo.Configuration, TempInitInfo.Style.StyleEX<PanelStyle>(), FakePanel, new());
         }
+        public TPanel(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Configuration, data.Style, data.ClickCommand) { Data = data; }
         public TileProvider FakePanel { get; set; }
         public Guid ID { get; set; } = Guid.NewGuid();
         public void Show(TSPlayer plr)

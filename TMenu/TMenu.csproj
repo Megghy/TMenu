@@ -87,6 +87,7 @@
     <Compile Include="Core\Events.cs" />
     <Compile Include="Core\FileManager.cs" />
     <Compile Include="Core\Hooks.cs" />
+    <Compile Include="Core\Json.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="TMPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -96,7 +97,6 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y $(TargetPath) D:\TShock4.5.0_Terraria1.4.2.1\ServerPlugins</PostBuildEvent>

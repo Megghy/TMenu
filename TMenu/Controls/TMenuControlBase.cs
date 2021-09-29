@@ -34,7 +34,7 @@ namespace TMenu.Controls
         /// <param name="height"></param>
         /// <param name="configuration"></param>
         /// <param name="style"></param>
-        public TMenuControlBase(string name, int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null)
+        public TMenuControlBase(string name, int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
         {
             Name = name;
             TempInitInfo = new InitInfo()
@@ -46,9 +46,11 @@ namespace TMenu.Controls
                 Configuration = configuration,
                 Style = style
             };
+            Click = clickCommand;
 
             //TUIObject = (T)Activator.CreateInstance(typeof(VisualObject), new object[] { x, y, width, height, configuration, style });
         }
+        public TMenuControlBase(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Configuration, data.Style, data.ClickCommand) { Data = data; }
         /// <summary>
         /// 控件的名称
         /// </summary>
@@ -77,7 +79,8 @@ namespace TMenu.Controls
                     TUIObject.Configuration = value;
             }
         }
-        public Core.Events.Click Click { get; set; } = new();
+        public Data.Click Click { get; set; } = new();
+        public Data.FileData Data { get; set; }
         [JsonIgnore]
         public T TUIObject { get; internal set; }
     }
@@ -85,21 +88,12 @@ namespace TMenu.Controls
     {
         public TMenuControlBase<T> AddChild<T>(TMenuControlBase<T> child) where T : VisualObject
         {
+            if (child is null)
+                throw new ArgumentNullException();
             TUIObject.Add(child.TUIObject);
             return child;
         }
-        /// <summary>
-        /// 将本控件设为其他控件的子控件
-        /// </summary>
-        /// <param name="target">目标控件</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public void AddToTMenu(TMenuControlBase<T> target, int? layer = null)
-        {
-            if (target is null)
-                throw new ArgumentNullException("target");
-            Data.Controls.Add((TMenuControlBase<VisualObject>)this);
-        }
-        public TMenuControlBase<T> AddToTUI(TMenuControlBase<T> target, int? layer = null)
+        public TMenuControlBase<T> AddTo(TMenuControlBase<T> target, int? layer = null)
         {
             if (target is null)
                 throw new ArgumentNullException("target");
@@ -109,11 +103,15 @@ namespace TMenu.Controls
         private void ClickEvent(T sender, Touch t)
         {
             Click.Command?.ForEach(c => Commands.HandleCommand(t.Player(), c));
-            TShock.Utils.Broadcast(Click.Message ?? string.Empty, Color.White);
-            if (!string.IsNullOrEmpty(Click.Goto) && Data.Controls.FirstOrDefault(c => c.TUIObject.GetType() == typeof(VisualContainer) && c.Name.ToLower() == Name.ToLower()) is { } target)
-                target.TUIObject.SetTop(target.TUIObject);
-            else
-                throw new();
+            if (!string.IsNullOrEmpty(Click.Message))
+                t.Player().SendMessage(Click.Message, Color.White);
+            if (!string.IsNullOrEmpty(Click.Goto))
+            {
+                if (TUIObject.Root.Child.FirstOrDefault(c => c.GetType() == typeof(VisualContainer) && c.Name.ToLower() == Name.ToLower()) is { } target)
+                    TUIObject.Root.SetTop(target);
+                else
+                    throw new($"Unable to find the specified control: \"{Click.Goto}\"");
+            }
         }
 
         public static implicit operator VisualObject(TMenuControlBase<T> t) => t.TUIObject;

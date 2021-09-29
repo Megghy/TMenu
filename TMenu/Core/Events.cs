@@ -8,11 +8,5 @@ namespace TMenu.Core
 {
     public class Events
     {
-        public struct Click
-        {
-            public string[] Command { get; set; }
-            public string Goto { get; set; }
-            public string Message { get; set; }
-        }
     }
 }

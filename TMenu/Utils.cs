@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 using TerrariaUI.Base;
+using TerrariaUI.Base.Style;
 using TerrariaUI.Widgets;
 using TShockAPI;
 
@@ -32,6 +29,27 @@ namespace TMenu
             l?.UpdateSelf();
         }
         public static void UpdateSelf(this VisualObject v) => v.Update().Apply().Draw();
+        public static bool TryParseJson<T>(string text, out T json)
+        {
+            try
+            {
+                json = JsonConvert.DeserializeObject<T>(text);
+                return true;
+            }
+            catch
+            {
+                json = default;
+                return false;
+            }
+        }
+        public static T StyleEX<T>(this UIStyle style) where T : UIStyle, new()
+        {
+            if (style == null)
+                return default;
+            var s = new T();
+            s.Stratify(style);
+            return s;
+        }
         public static TSPlayer Player(this Touch t) => TShock.Players[t.PlayerIndex];
     }
 }
