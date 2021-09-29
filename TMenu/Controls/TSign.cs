@@ -37,7 +37,6 @@ namespace TMenu.Controls
         public override TMenuControlBase<VisualSign> Init()
         {
             TUIObject = new VisualSign(TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, Text, TempInitInfo.Configuration, TempInitInfo.Style, OnClick);
-            TUIObject.Set(Text);
             return this;
         }
     }

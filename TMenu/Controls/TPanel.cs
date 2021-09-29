@@ -25,20 +25,26 @@ namespace TMenu.Controls
         }
         public override TMenuControlBase<Panel> Init()
         {
-            FakePanel = FakeProviderAPI.CreatePersonalTileProvider(ID.ToString(), new() { }, TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
-            //FakePanel = FakeProviderAPI.CreateTileProvider(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
-            TUIObject = new Panel(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, TempInitInfo.Configuration, TempInitInfo.Style.StyleEX<PanelStyle>(), FakePanel, new());
+            FakePanel = Public ? FakeProviderAPI.CreateTileProvider(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height) : FakeProviderAPI.CreatePersonalTileProvider(ID.ToString(), new() { }, TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
+            TUIObject = new Panel(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, TempInitInfo.Configuration, TempInitInfo.Style.StyleEX<PanelStyle>(), FakePanel, Public ? null : new());
             return this;
         }
         public TileProvider FakePanel { get; set; }
+
         public Guid ID { get; set; } = Guid.NewGuid();
+        public bool Moveable => Data.Public;
+        public bool Public => Data.Public;
+
         public void Show(TSPlayer plr)
         {
-            AddUser(plr);
+            if (Public)
+                AddUser(plr);
             TUI.Create(TUIObject);
         }
         public void AddUser(TSPlayer plr)
         {
+            if (Public)
+                throw new("This is a public menu, no users can be added to it.");
             FakePanel.Observers.Add(plr.Index);
             TUIObject.Observers.Add(plr.Index);
         }

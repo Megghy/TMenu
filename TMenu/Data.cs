@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
+using TerrariaUI.Widgets.Data;
 using TMenu.Controls;
 using TShockAPI;
 
@@ -13,9 +14,11 @@ namespace TMenu
         public static List<TPanel> Menus { get; set; } = new();
         public static Dictionary<Type, string> ControlName { get; set; } = new()
         {
-            { typeof(TButton), "button"},
+            { typeof(TButton), "button" },
             { typeof(TContainer), "container" },
             { typeof(TSign), "sign" },
+            { typeof(TChest), "chest" },
+            { typeof(TArror), "arror" },
         };
         public class Variables
         {
@@ -84,10 +87,16 @@ namespace TMenu
             string _height;
             public int Height => ParsePosition(_height);
             public string Text { get; set; }
-            public Direction Direction { get; set; }
             public UIConfiguration Config { get; set; }
             public UIStyle Style { get; set; }
             public Click ClickCommand { get; set; }
+            #region 一些不一定存在的属性
+            public Direction Direction { get; set; } = Direction.Up;
+            internal ItemData[] _items;
+            public ItemData[] Items { get; set; } = new ItemData[0];
+            public bool Public { get; set; } = false;
+            public bool Moveable { get; set; } = true;
+            #endregion
             public TSPlayer Player { get; set; }
             public static bool TryParseFromJson(JToken json, out FileData data)
             {
@@ -100,10 +109,16 @@ namespace TMenu
                         json.Value<string>("width"),
                         json.Value<string>("height"),
                         json.Value<string>("text"),
-                        json.Value<JObject>("configuration")?.ToObject<UIConfiguration>(),
+                        json.Value<JObject>("config")?.ToObject<UIConfiguration>(),
                         json.Value<JObject>("style")?.ToObject<UIStyle>(),
                         json.Value<JObject>("click")?.ToObject<Click>()
-                        );
+                        )
+                    {
+                        _items = json.Value<JArray>("items")?.ToObject<ItemData[]>(),
+                        Direction = Enum.TryParse<Direction>(json.Value<JObject>("style")?.Value<string>("direction") ?? "", out var d) ? d : Direction.Up,
+                        Moveable = json.Value<bool>("moveable"),
+                        Public = json.Value<bool>("public"),
+                    };
                     return true;
                 }
                 catch

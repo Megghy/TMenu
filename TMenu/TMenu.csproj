@@ -80,12 +80,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="Controls\TArror.cs" />
+    <Compile Include="Controls\TChest.cs" />
     <Compile Include="Controls\TContainer.cs" />
     <Compile Include="Controls\TMenuControlBase.cs" />
     <Compile Include="Controls\TButton.cs" />
     <Compile Include="Controls\TPanel.cs" />
+    <Compile Include="Controls\TSign.cs" />
     <Compile Include="Core\Events.cs" />
-    <Compile Include="Core\FileManager.cs" />
+    <Compile Include="Core\Files.cs" />
     <Compile Include="Core\Hooks.cs" />
     <Compile Include="Core\Json.cs" />
     <Compile Include="Data.cs" />
