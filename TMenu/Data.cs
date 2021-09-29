@@ -11,6 +11,12 @@ namespace TMenu
     public class Data
     {
         public static List<TPanel> Menus { get; set; } = new();
+        public static Dictionary<Type, string> ControlName { get; set; } = new()
+        {
+            { typeof(TButton), "button"},
+            { typeof(TContainer), "container" },
+            { typeof(TSign), "sign" },
+        };
         public class Variables
         {
             public class VariableNameAttribute : Attribute
@@ -19,7 +25,7 @@ namespace TMenu
                 {
                     Name = name;
                 }
-                public string Name {  get; set; }
+                public string Name { get; set; }
             }
             public Variables(TSPlayer plr)
             {

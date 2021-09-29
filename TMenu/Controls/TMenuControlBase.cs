@@ -20,7 +20,12 @@ namespace TMenu.Controls
             public int Y { get; set; }
             public int Width { get; set; }
             public int Height { get; set; }
-            public UIConfiguration Configuration { get; set; }
+            public UIConfiguration Configuration { get; set; } = new()
+            {
+                UseBegin = true,
+                UseEnd = true,
+                UseMoving = true
+            };
             public UIStyle Style { get; set; }
         }
         public InitInfo TempInitInfo;
@@ -46,11 +51,25 @@ namespace TMenu.Controls
                 Configuration = configuration,
                 Style = style
             };
-            Click = clickCommand;
+            Click = clickCommand ?? new();
 
             //TUIObject = (T)Activator.CreateInstance(typeof(VisualObject), new object[] { x, y, width, height, configuration, style });
         }
-        public TMenuControlBase(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Config, data.Style, data.ClickCommand) { Data = data; }
+        public TMenuControlBase(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Config, data.Style, data.ClickCommand)
+        {
+            Data = data;
+            TempInitInfo = new()
+            {
+                X = data.X,
+                Y = data.Y,
+                Width = data.Width,
+                Height = data.Height,
+                Configuration = data.Config,
+                Style = data.Style
+            };
+            Name = data.Name;
+            Click = data.ClickCommand ?? new();
+        }
         [JsonIgnore]
         public Type Type => typeof(T);
         /// <summary>
@@ -88,6 +107,7 @@ namespace TMenu.Controls
     }
     public abstract partial class TMenuControlBase<T> where T : VisualObject
     {
+        public abstract TMenuControlBase<T> Init();
         public TMenuControlBase<T> AddChild<T>(TMenuControlBase<T> child) where T : VisualObject
         {
             if (child is null)
