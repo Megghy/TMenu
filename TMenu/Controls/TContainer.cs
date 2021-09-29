@@ -17,7 +17,7 @@ namespace TMenu.Controls
             s.Stratify(style);
             TUIObject = new VisualContainer(x, y, width, height, configuration, s, OnClick);
         }
-        public TContainer(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Configuration, data.Style.StyleEX<ContainerStyle>(), data.ClickCommand) { Data = data; }
+        public TContainer(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Config, data.Style.StyleEX<ContainerStyle>(), data.ClickCommand) { Data = data; }
 
     }
 }

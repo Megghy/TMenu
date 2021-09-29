@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FakeProvider;
+using Terraria.GameContent.UI.Elements;
+using Terraria.IO;
+using TerrariaUI;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
 using TerrariaUI.Widgets;
@@ -17,18 +21,24 @@ namespace TMenu.Controls
             //FakePanel = FakeProviderAPI.CreateTileProvider(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
             TUIObject = new Panel(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, TempInitInfo.Configuration, TempInitInfo.Style.StyleEX<PanelStyle>(), FakePanel, new());
         }
-        public TPanel(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Configuration, data.Style, data.ClickCommand) { Data = data; }
+        public TPanel(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Config, data.Style, data.ClickCommand) { Data = data; }
         public TileProvider FakePanel { get; set; }
         public Guid ID { get; set; } = Guid.NewGuid();
         public void Show(TSPlayer plr)
         {
             AddUser(plr);
-            TerrariaUI.TUI.Create(TUIObject);
+            TUI.Create(TUIObject);
         }
         public void AddUser(TSPlayer plr)
         {
             FakePanel.Observers.Add(plr.Index);
             TUIObject.Observers.Add(plr.Index);
+        }
+        public void Dispose()
+        {
+            if (TUI.Roots.Any(r => r.Name == ID.ToString()))
+                TUI.Destroy(TUIObject);
+            FakePanel?.Dispose();
         }
     }
 }

@@ -1,22 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using TerrariaUI.Base;
+using TerrariaUI.Widgets;
 using TMenu.Controls;
 using TShockAPI;
 using static Terraria.WorldBuilding.Searches;
 
 namespace TMenu.Core
 {
-    internal class FileManager
+    internal class Files
     {
-        public static string SavePath => Path.Combine(TShockAPI.TShock.SavePath, "TMenu");
+        public static string SavePath => Path.Combine(TShock.SavePath, "TMenu");
         public static string ConfigFilePath => Path.Combine(SavePath, "TMenuConfig.json");
-
+        public static Dictionary<Type, string> ControlName { get; set; } = new();
         public static void Init()
         {
             Config._instance = null;
-
+            ControlName.Add(typeof(TButton), "button");
+            ControlName.Add(typeof(TContainer), "container");
+            ControlName.Add(typeof(VisualSign), "sign");
         }
         public static void Deserilize(string path)
         {
@@ -75,48 +80,32 @@ namespace TMenu.Core
                     return false;
                 }
             }
-            void AddChilds<T>(TMenuControlBase<T> parent, JToken json) where T : VisualObject
+            void AddChilds(dynamic parent, JToken json)
             {
                 if (json.Value<JArray>("child") is { } childs)
                 {
                     childs.ForEach(c =>
                     {
-                        if (c.Value<string>("type") is { } type)
+                        if (c.Value<string>("type") is { } typeName && ControlName.FirstOrDefault(c => c.Value == typeName.ToLower()) is { Key: not null } type)
                         {
-                            switch (type)
+                            if (TryParseControl(c, type.Key, out dynamic tempButton))
                             {
-                                case "button":
-                                    if (TryParseControl<TButton>(c, out var tempButton))
-                                    {
-                                        AddChilds(tempButton, c);
-                                        parent.AddChild(tempButton);
-                                    }
-                                    else
-                                        LogError(c);
-                                    break;
-                                case "container":
-                                    if (TryParseControl<TContainer>(c, out var tempContainer))
-                                    {
-                                        AddChilds(tempContainer, c);
-                                        parent.AddChild(tempContainer);
-                                    }
-                                    else
-                                        LogError(c);
-                                    break;
+                                AddChilds(tempButton, c);
+                                parent.TUIObject.Add(tempButton.TUIObject);
                             }
+                            else
+                                TShock.Log.ConsoleInfo($"[TMenu] An error occurred when initlizing \"{json.Root["menu"].Value<string>("name")}\", located in \"{json.Value<string>("name")}\".");
                         }
+                        else
+                            TShock.Log.ConsoleInfo($"[TMenu] Cannot find control named: \"{json.Value<string>("type")}\".");
                     });
                 }
             }
-            void LogError(JToken json)
-            {
-                TShock.Log.ConsoleInfo($"[TMenu] An error occurred when initlizing \"{json.Root["menu"].Value<string>("name")}\", located in \"{json.Value<string>("name")}\".");
-            }
-            bool TryParseControl<T>(JToken json, out T control)
+            bool TryParseControl(JToken json, Type t, out object control)
             {
                 if (Data.FileData.TryParseFromJson(json, out var data))
 {
-                    control = (T)Activator.CreateInstance(typeof(T), new object[] { data });
+                    control = Activator.CreateInstance(t, new object[] { data });
                     return true;
                 }
                 else

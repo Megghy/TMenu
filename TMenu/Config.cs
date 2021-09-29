@@ -16,9 +16,9 @@ namespace TMenu
         }
         private static Config Load()
         {
-            if (!File.Exists(Core.FileManager.ConfigFilePath))
-                File.WriteAllText(Core.FileManager.ConfigFilePath, JsonConvert.SerializeObject(new()));
-            return JsonConvert.DeserializeObject<Config>(File.ReadAllText(Core.FileManager.ConfigFilePath));
+            if (!File.Exists(Core.Files.ConfigFilePath))
+                File.WriteAllText(Core.Files.ConfigFilePath, JsonConvert.SerializeObject(new()));
+            return JsonConvert.DeserializeObject<Config>(File.ReadAllText(Core.Files.ConfigFilePath));
         }
 
         public string xx { get; set; }

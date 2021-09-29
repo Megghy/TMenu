@@ -11,6 +11,35 @@ namespace TMenu
     public class Data
     {
         public static List<TPanel> Menus { get; set; } = new();
+        public class Variables
+        {
+            public class VariableNameAttribute : Attribute
+            {
+                public VariableNameAttribute(string name)
+                {
+                    Name = name;
+                }
+                public string Name {  get; set; }
+            }
+            public Variables(TSPlayer plr)
+            {
+                Player = plr;
+            }
+            public TSPlayer Player { get; private set; }
+            [VariableName("player.x")]
+            public float X => Player.X;
+            [VariableName("player.y")]
+            public float Y => Player.Y;
+            [VariableName("player.tilex")]
+            public int TileX => Player.TileX;
+            [VariableName("player.tiley")]
+            public int TileY => Player.TileY;
+            public string ReflectValue(string name)
+            {
+                //todo
+                return "";
+            }
+        }
         public class Click
         {
             public string[] Command { get; set; }
@@ -27,7 +56,7 @@ namespace TMenu
                 _width = width;
                 _height = height;
                 Text = text ?? String.Empty;
-                Configuration = configuration ?? new()
+                Config = configuration ?? new()
                 {
                     UseBegin = true,
                     UseEnd = true,
@@ -49,7 +78,8 @@ namespace TMenu
             string _height;
             public int Height => ParsePosition(_height);
             public string Text { get; set; }
-            public UIConfiguration Configuration { get; set; }
+            public Direction Direction { get; set; }
+            public UIConfiguration Config { get; set; }
             public UIStyle Style { get; set; }
             public Click ClickCommand { get; set; }
             public TSPlayer Player { get; set; }

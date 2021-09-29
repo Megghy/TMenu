@@ -10,7 +10,7 @@ using TShockAPI;
 namespace TMenu.Controls
 {
     /// <summary>
-    /// 储存的数据
+    /// 控件容器 虽然感觉其实不太用的上这个
     /// </summary>
     public abstract partial class TMenuControlBase<T> where T : VisualObject
     {
@@ -50,7 +50,9 @@ namespace TMenu.Controls
 
             //TUIObject = (T)Activator.CreateInstance(typeof(VisualObject), new object[] { x, y, width, height, configuration, style });
         }
-        public TMenuControlBase(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Configuration, data.Style, data.ClickCommand) { Data = data; }
+        public TMenuControlBase(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Config, data.Style, data.ClickCommand) { Data = data; }
+        [JsonIgnore]
+        public Type Type => typeof(T);
         /// <summary>
         /// 控件的名称
         /// </summary>

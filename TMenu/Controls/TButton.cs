@@ -14,7 +14,7 @@ namespace TMenu.Controls
             TUIObject = new(x, y, width, height, text, configuration, style, OnClick);
             _text = text;
         }
-        public TButton(Data.FileData data) : this(data.Name, data.Text, data.X, data.Y, data.Width, data.Height, data.Configuration, data.Style.StyleEX<ButtonStyle>(), data.ClickCommand) { Data = data; }
+        public TButton(Data.FileData data) : this(data.Name, data.Text, data.X, data.Y, data.Width, data.Height, data.Config, data.Style.StyleEX<ButtonStyle>(), data.ClickCommand) { Data = data; }
         [JsonIgnore]
         private string _text = string.Empty;
         public string Text

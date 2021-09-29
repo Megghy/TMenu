@@ -11,6 +11,7 @@ namespace TMenu
         public TMPlugin(Main game) : base(game) { Instance = this; }
         public override void Initialize()
         {
+            Core.Files.Init();
 #if DEBUG
             ServerApi.Hooks.NetGreetPlayer.Register(this, JOIN);
 #endif
@@ -25,7 +26,7 @@ namespace TMenu
             var b = c.AddChild(new Controls.TButton("bb", "woc", 0, 0, 10, 10));
             //p.TUIObject.UpdateSelf();
             p.Show(plr);*/
-            var panel = Core.FileManager.DeserilizeInner("{\"menu\":{\"type\":\"panel\",\"x\":\"2100\",\"y\":250,\"width\":50,\"height\":50,\"name\":\"mainmenu\",\"child\":[{\"type\":\"button\",\"text\":\"text\",\"x\":\"0\",\"y\":0,\"width\":20,\"height\":20,\"name\":\"button\",\"style\":{\"wall\":150},\"click\":{\"message\":\"test\"}}]}}");
+            var panel = Core.Files.DeserilizeInner("{\"menu\":{\"type\":\"panel\",\"x\":\"2100\",\"y\":250,\"width\":50,\"height\":50,\"name\":\"mainmenu\",\"child\":[{\"type\":\"button\",\"text\":\"text\",\"x\":\"0\",\"y\":0,\"width\":20,\"height\":20,\"name\":\"button\",\"style\":{\"wall\":150},\"click\":{\"message\":\"test\"}}]}}");
             panel.Show(plr);
         }
 #endif
