@@ -7,7 +7,7 @@ using TShockAPI;
 
 namespace TMenu.Core
 {
-    internal class Json
+    internal class Parser
     {
         //todo
         /*public static Json Instance = new();
@@ -52,20 +52,20 @@ namespace TMenu.Core
             public abstract TMenuControlBase<T> Deserlize(JObject jobj);
         }
         */
-        public static TPanel Deserilize(string path)
+        public static TPanel Deserilize(string path, TSPlayer plr = null)
         {
             try
             {
                 if (File.Exists(path))
-                    return DeserilizeInner(File.ReadAllText(path));
+                    return DeserilizeInner(path, File.ReadAllText(path), plr);
             }
             catch (Exception ex)
             {
-                TShock.Log.ConsoleError($"Unable read menu file {Path.GetFileName(path)}\r\n{ex}");
+                Logs.Error($"无法加载菜单 {Path.GetFileName(path)}\r\n{ex}");
             }
             return null;
         }
-        internal static TPanel DeserilizeInner(string text)
+        internal static TPanel DeserilizeInner(string path, string text, TSPlayer plr = null)
         {
             try
             {
@@ -73,44 +73,32 @@ namespace TMenu.Core
                 {
                     if (json.TryGetValue("menu", StringComparison.CurrentCultureIgnoreCase, out var menuJson))
                     {
-                        if (TryParsePanel(menuJson, out var panel))
+                        if (Data.FileData.TryParseFromJson(menuJson, out var data))
                         {
-                            return panel;
+                            data.Path = path;
+                            data.Player = plr; //用于计算里面的各种变量 为空则只加载信息
+                            var tempPanel = new TPanel(data);
+                            tempPanel.RootPanel = tempPanel;
+                            ParseChilds(tempPanel, tempPanel, menuJson);
+                            return tempPanel;
                         }
-                        throw new("Unable to read menu file, please check if the format is correct.");
+                        //throw new("Unable to read menu file, please check if the format is correct.");
+                        throw new("无法读取菜单文件, 请检查格式.");
                     }
                     else
-                        throw new("Entry point not found: \"menu\", please check the file format.");
+                        //throw new("Entry point not found: \"menu\", please check the file format.");
+                        throw new("未找到入口点: \"menu\", 请检查格式.");
                 }
                 else
-                    throw new("Invalid json file.");
+                    //throw new("Invalid json file.");
+                    throw new("无效的json文件.");
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
-        private static bool TryParsePanel(JToken json, out TPanel panel)
-        {
-            panel = null;
-            try
-            {
-                if (Data.FileData.TryParseFromJson(json, out var data))
-                {
-                    var tempPanel = new TPanel(data);
-                    AddChilds(tempPanel, json);
-                    panel = tempPanel;
-                    return true;
-                }
-                else
-                    return false;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-        private static void AddChilds(dynamic parent, JToken json)
+        private static void ParseChilds(TPanel root, dynamic parent, JToken json)
         {
             if (json.Value<JArray>("child") is { } childs)
             {
@@ -118,18 +106,19 @@ namespace TMenu.Core
                 {
                     if (c.Value<string>("type") is { } typeName && Data.ControlName.FirstOrDefault(c => c.Value == typeName.ToLower()) is { Key: not null } type)
                     {
-                        if(type.Value == "panel")
-                            TShock.Log.ConsoleInfo($"[TMenu] Cannot continue to add panels inside the menu.");
-                        else if (TryParseControl(c, type.Key, out dynamic tempButton))
+                        if (type.Value == "panel")
+                            Logs.Error($"Cannot continue to add panels inside the menu.");
+                        else if (TryParseControl(c, type.Key, out dynamic tempControl))
                         {
-                            AddChilds(tempButton, c);
-                            parent.TUIObject.Add(tempButton.TUIObject);
+                            ParseChilds(root, tempControl, c);
+                            tempControl.RootPanel = root;
+                            parent.TUIObject.Add(tempControl.TUIObject);
                         }
                         else
-                            TShock.Log.ConsoleInfo($"[TMenu] An error occurred when initlizing \"{json.Root["menu"].Value<string>("name")}\", located in \"{json.Value<string>("name")}\".");
+                            Logs.Error($"An error occurred when initlizing \"{json.Root["menu"].Value<string>("name")}\", located in \"{json.Value<string>("name")}\".");
                     }
                     else
-                        TShock.Log.ConsoleInfo($"[TMenu] Cannot find control named: \"{json.Value<string>("type")}\".");
+                        Logs.Error($"Cannot find control named: \"{c.Value<string>("type")}\".");
                 });
             }
         }

@@ -9,26 +9,19 @@ using TShockAPI;
 
 namespace TMenu.Controls
 {
+    public class NameInJsonAttribute : Attribute
+    {
+        public NameInJsonAttribute(string name)
+        {
+            Name = name;
+        }
+        public string Name { get; set; }
+    }
     /// <summary>
     /// 控件容器 虽然感觉其实不太用的上这个
     /// </summary>
     public abstract partial class TMenuControlBase<T> where T : VisualObject
     {
-        public struct InitInfo
-        {
-            public int X { get; set; }
-            public int Y { get; set; }
-            public int Width { get; set; }
-            public int Height { get; set; }
-            public UIConfiguration Configuration { get; set; } = new()
-            {
-                UseBegin = true,
-                UseEnd = true,
-                UseMoving = true
-            };
-            public UIStyle Style { get; set; }
-        }
-        public InitInfo TempInitInfo;
         /// <summary>
         /// 由于tui的控件类型不能强制转换 需要自己在派生的构造函数里实例化tui对象
         /// </summary>
@@ -39,39 +32,21 @@ namespace TMenu.Controls
         /// <param name="height"></param>
         /// <param name="configuration"></param>
         /// <param name="style"></param>
-        public TMenuControlBase(string name, int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
+        public TMenuControlBase(string name, string x, string y, string width, string height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
         {
             Name = name;
-            TempInitInfo = new InitInfo()
-            {
-                X = x,
-                Y = y,
-                Width = width,
-                Height = height,
-                Configuration = configuration,
-                Style = style
-            };
-            Click = clickCommand ?? new();
+            Data = new(name, x, y, width, height, "", configuration, style, clickCommand);
 
             //TUIObject = (T)Activator.CreateInstance(typeof(VisualObject), new object[] { x, y, width, height, configuration, style });
         }
-        public TMenuControlBase(Data.FileData data) : this(data.Name, data.X, data.Y, data.Width, data.Height, data.Config, data.Style, data.ClickCommand)
+        public TMenuControlBase(Data.FileData data)
         {
-            Data = data;
-            TempInitInfo = new()
-            {
-                X = data.X,
-                Y = data.Y,
-                Width = data.Width,
-                Height = data.Height,
-                Configuration = data.Config,
-                Style = data.Style
-            };
             Name = data.Name;
-            Click = data.ClickCommand ?? new();
+            Data = data;
         }
         [JsonIgnore]
         public Type Type => typeof(T);
+        public TPanel RootPanel {  get; set; }
         /// <summary>
         /// 控件的名称
         /// </summary>
@@ -100,8 +75,8 @@ namespace TMenu.Controls
                     TUIObject.Configuration = value;
             }
         }
-        public Data.Click Click { get; set; } = new();
-        public Data.FileData Data { get; set; }
+        public Data.Click Click => Data.ClickCommand;
+        public Data.FileData Data { get; set; } = new();
         [JsonIgnore]
         public T TUIObject { get; internal set; }
     }

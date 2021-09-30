@@ -17,7 +17,7 @@ namespace TMenu.Core
         public static string ConfigFilePath => Path.Combine(SavePath, "TMenuConfig.json");
         public static string MenuFilePath => Path.Combine(SavePath, "Menus");
 
-        public static void Init()
+        public static void Load()
         {
             Config._instance = null;
             Data.Menus.ForEach(m => m.Dispose());
@@ -28,12 +28,21 @@ namespace TMenu.Core
                 Directory.CreateDirectory(MenuFilePath);
             Directory.GetFiles(MenuFilePath).ForEach(file =>
             {
-                if(Json.Deserilize(file) is { } panel)
+                if(Parser.Deserilize(file) is { } panel)
                 {
                     Data.Menus.Add(panel);
-                    TShock.Log.Info($"[TMenu] Successfully loaded menu: \"{panel.Name}\"");
+                    //TShock.Log.ConsoleInfo($"[TMenu] Successfully loaded menu: \"{panel.Name}\".");
+                    Logs.Success($"成功加载菜单: \"{panel.Name}\"");
                 }
             });
+        }
+        public static TPanel FindMenu(string name)
+        {
+            return Data.Menus.FirstOrDefault(m => m.Name == name);
+        }
+        public static List<TPanel> FindMenuLike(string name)
+        {
+            return Data.Menus.Where(m => m.Name.ToLower().StartsWith(name.ToLower()) || m.Name.ToLower().Contains(name.ToLower())).ToList();
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json.Linq;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
@@ -19,7 +22,17 @@ namespace TMenu
             { typeof(TSign), "sign" },
             { typeof(TChest), "chest" },
             { typeof(TArror), "arror" },
+            { typeof(TItemRack), "itemrack" },
         };
+        public static void Init()
+        {
+            ControlName.Clear();
+            Assembly
+                .GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => t.Namespace == "TMenu.Controls" && t.BaseType.Name == "TMenuControlBase`1")
+                .ForEach(t => ControlName.Add(t, t.GetCustomAttribute<NameInJsonAttribute>() is { } a ? a.Name : t.Name.Remove(0, 1).ToLower()));
+        }
         public class Variables
         {
             public class VariableNameAttribute : Attribute
@@ -57,6 +70,9 @@ namespace TMenu
         }
         public class FileData
         {
+            public FileData() : this("unknown", "0", "0", "0", "0")
+            {
+            }
             public FileData(string name, string x, string y, string width, string height, string text = null, UIConfiguration configuration = null, UIStyle style = null, Click clickCommand = null)
             {
                 Name = name;
@@ -74,12 +90,10 @@ namespace TMenu
                 Style = style;
                 ClickCommand = clickCommand;
             }
+            public string Path { get; set; }
             public string Name { get; set; }
             string _x;
-            public int X
-            {
-                get => ParsePosition(_x);
-            }
+            public int X => ParsePosition(_x);
             string _y;
             public int Y => ParsePosition(_y);
             string _width;
@@ -89,12 +103,13 @@ namespace TMenu
             public string Text { get; set; }
             public UIConfiguration Config { get; set; }
             public UIStyle Style { get; set; }
-            public Click ClickCommand { get; set; }
+            public Click ClickCommand { get; set; } = new();
             #region 一些不一定存在的属性
             public Direction Direction { get; set; } = Direction.Up;
             internal ItemData[] _items;
+            public ItemData Item { get; set; } = new();
             public ItemData[] Items { get; set; } = new ItemData[0];
-            public bool Public { get; set; } = false;
+            public bool Personal { get; set; } = true;
             public bool Moveable { get; set; } = true;
             #endregion
             public TSPlayer Player { get; set; }
@@ -117,7 +132,7 @@ namespace TMenu
                         _items = json.Value<JArray>("items")?.ToObject<ItemData[]>(),
                         Direction = Enum.TryParse<Direction>(json.Value<JObject>("style")?.Value<string>("direction") ?? "", out var d) ? d : Direction.Up,
                         Moveable = json.Value<bool>("moveable"),
-                        Public = json.Value<bool>("public"),
+                        Personal = json.Value<bool>("public"),
                     };
                     return true;
                 }
@@ -129,19 +144,20 @@ namespace TMenu
             }
             public int ParsePosition(string text)
             {
-                var i = 0;
-                return int.TryParse(text, out i) ? i : 0;
-                Type scriptType = Type.GetTypeFromCLSID(Guid.Parse("0E59F1D5-1FBE-11D0-8FF2-00A0D10038BC"));
-
-                dynamic obj = Activator.CreateInstance(scriptType, false);
-                obj.Language = "javascript";
-
-                return obj.Eval(text) ?? int.TryParse(text, out i) ? i : 0;
+                object result = new DataTable().Compute(ParseVariable(text), "");
+                return result == DBNull.Value ? int.TryParse(text, out var i) ? i : 0 : int.TryParse(result.ToString(), out var ii) ? ii : 0;
             }
             string ParseVariable(string text)
             {
                 return text
-                    .Replace("{player.x}", Player.TileX.ToString());
+                    .Replace("{player.x}", Player?.TileX)
+                    .Replace("{player.y}", Player?.TileY)
+                    .Replace("{player.name}", Player?.Name)
+                    .Replace("{player.heal}", Player?.TPlayer.statLife)
+                    .Replace("{player.life}", Player?.TPlayer.statLife)
+                    .Replace("{player.mana}", Player?.TPlayer.statMana)
+                    .Replace("{player.magic}", Player?.TPlayer.statMana)
+                    ;
             }
         }
     }

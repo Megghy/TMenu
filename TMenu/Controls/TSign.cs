@@ -10,33 +10,31 @@ using TerrariaUI.Widgets;
 
 namespace TMenu.Controls
 {
+    [NameInJson("sign")]
     public class TSign : TMenuControlBase<VisualSign>
     {
         public TSign(Data.FileData data) : base(data)
         {
-            Text = data.Text;
             Init();
         }
 
-        public TSign(string name, int x, int y, int width, int height, string text = "", UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null) : base(name, x, y, width, height, configuration, style, clickCommand)
+        public TSign(string name, string x, string y, string width, string height, string text = "", UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null) : base(name, x, y, width, height, configuration, style, clickCommand)
         {
-            Text = text;
+            Data.Text = text;
             Init();
         }
-        [JsonIgnore]
-        private string _text = string.Empty;
         public string Text
         {
-            get => _text;
+            get => Data.Text;
             set
             {
-                _text = value;
+                Data.Text = value;
                 TUIObject?.Set(value);
             }
         }
         public override TMenuControlBase<VisualSign> Init()
         {
-            TUIObject = new VisualSign(TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, Text, TempInitInfo.Configuration, TempInitInfo.Style, OnClick);
+            TUIObject = new VisualSign(Data.X, Data.Y, Data.Width, Data.Height, Text, Data.Config, Data.Style, OnClick);
             return this;
         }
     }

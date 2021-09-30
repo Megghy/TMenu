@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using FakeProvider;
-using Terraria.GameContent.UI.Elements;
-using Terraria.IO;
 using TerrariaUI;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
@@ -12,9 +8,11 @@ using TShockAPI;
 
 namespace TMenu.Controls
 {
-    public class TPanel : TMenuControlBase<Panel>
+    [Serializable]
+    [NameInJson("panel")]
+    public class TPanel : TMenuControlBase<Panel>, ICloneable
     {
-        public TPanel(string name, int x, int y, int width, int height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
+        public TPanel(string name, string x, string y, string width, string height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
             : base(name, x, y, width, height, configuration, style, clickCommand)
         {
             Init();
@@ -25,34 +23,38 @@ namespace TMenu.Controls
         }
         public override TMenuControlBase<Panel> Init()
         {
-            FakePanel = Public ? FakeProviderAPI.CreateTileProvider(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height) : FakeProviderAPI.CreatePersonalTileProvider(ID.ToString(), new() { }, TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height);
-            TUIObject = new Panel(ID.ToString(), TempInitInfo.X, TempInitInfo.Y, TempInitInfo.Width, TempInitInfo.Height, TempInitInfo.Configuration, TempInitInfo.Style.StyleEX<PanelStyle>(), FakePanel, Public ? null : new());
+            FakePanel = Personal ? FakeProviderAPI.CreatePersonalTileProvider(ID.ToString(), new() { }, Data.X, Data.Y, Data.Width, Data.Height) : FakeProviderAPI.CreateTileProvider(ID.ToString(), Data.X, Data.Y, Data.Width, Data.Height);
+            TUIObject = new Panel(ID.ToString(), Data.X, Data.Y, Data.Width, Data.Height, Data.Config, Data.Style.StyleEX<PanelStyle>(), FakePanel, Personal ? new() : null);
             return this;
         }
         public TileProvider FakePanel { get; set; }
-
         public Guid ID { get; set; } = Guid.NewGuid();
-        public bool Moveable => Data.Public;
-        public bool Public => Data.Public;
+        public bool Moveable => Data.Moveable;
+        public bool Personal => Data.Personal;
+        public bool IsFromFile => !string.IsNullOrEmpty(Data.Path);
+        public TSPlayer User { get; set; }
 
-        public void Show(TSPlayer plr)
-        {
-            if (Public)
-                AddUser(plr);
-            TUI.Create(TUIObject);
-        }
         public void AddUser(TSPlayer plr)
         {
-            if (Public)
+            if (!Personal)
                 throw new("This is a public menu, no users can be added to it.");
             FakePanel.Observers.Add(plr.Index);
             TUIObject.Observers.Add(plr.Index);
+            User = plr;
         }
         public void Dispose()
         {
-            if (TUI.Roots.Any(r => r.Name == ID.ToString()))
-                TUI.Destroy(TUIObject);
-            FakePanel?.Dispose();
+            TUI.Destroy(TUIObject);
+            FakePanel.Dispose();
+        }
+
+        public object Clone(TSPlayer plr)
+        {
+            return Core.Parser.Deserilize(Data.Path, plr);
+        }
+        public object Clone()
+        {
+            return IsFromFile ? Core.Parser.Deserilize(Data.Path) : Utils.CreateClone(this);
         }
     }
 }
