@@ -8,5 +8,9 @@ namespace TMenu.Core
 {
     public class Events
     {
+        public static void OnUpdateVisualChest()
+        {
+
+        }
     }
 }

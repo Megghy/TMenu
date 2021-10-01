@@ -13,7 +13,7 @@ namespace TMenu.Controls
     [NameInJson("itemrack")]
     internal class TItemRack : TMenuControlBase<ItemRack>
     {
-        public TItemRack(Data.FileData data) : base(data)
+        public TItemRack(Data.MenuOriginData data) : base(data)
         {
             Init();
         }

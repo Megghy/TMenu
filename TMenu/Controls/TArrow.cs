@@ -11,14 +11,14 @@ using static System.Net.Mime.MediaTypeNames;
 namespace TMenu.Controls
 {
     [NameInJson("arrow")]
-    public class TArror : TMenuControlBase<Arrow>
+    public class TArrow : TMenuControlBase<Arrow>
     {
-        public TArror(Data.FileData data) : base(data)
+        public TArrow(Data.MenuOriginData data) : base(data)
         {
             Init();
         }
 
-        public TArror(string name, Direction direction, string x, string y, string width, string height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null) : base(name, x, y, width, height, configuration, style, clickCommand)
+        public TArrow(string name, Direction direction, string x, string y, string width, string height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null) : base(name, x, y, width, height, configuration, style, clickCommand)
         {
             Init();
         }

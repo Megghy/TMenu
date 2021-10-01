@@ -65,10 +65,10 @@ namespace TMenu
         /// <param name="panel"></param>
         /// <param name="plr"></param>
         /// <returns></returns>
-        public static TPanel Show(this TPanel panel, TSPlayer plr = null)
+        public static TPanel Show(this TPanel panel, TSPlayer plr = null, bool clone = true)
         {
             var tempPanel = panel;
-            if (panel.IsFromFile)
+            if (panel.IsFromFile && clone)
                 tempPanel = panel.Clone(plr) as TPanel;
             if (tempPanel.Personal && plr != null)
                 tempPanel.AddUser(plr);
@@ -80,16 +80,16 @@ namespace TMenu
         public static bool ContainsMenu(this TSPlayer plr, string name) => plr.MenuList().Any(m => m.Name == name);
         public static bool ContainsMenu(this TSPlayer plr, TPanel panel) => plr.MenuList().Any(m => m.Name == panel.Name);
         /// <summary>
-        /// 创建指定菜单的副本并打开
+        /// 创建指定菜单(的副本)并打开
         /// </summary>
         /// <param name="plr"></param>
         /// <param name="panel"></param>
         /// <returns></returns>
-        public static bool OpenMenu(this TSPlayer plr, TPanel panel)
+        public static bool OpenMenu(this TSPlayer plr, TPanel panel, bool clone = true)
         {
             if (!plr.ContainsMenu(panel))
             {
-                plr?.MenuList().Add(panel.Show(plr));
+                plr?.MenuList().Add(panel.Show(plr, clone));
                 Logs.Info($"玩家 {plr.Name} {"开启".Color("C3DB9E")} 菜单: \"{panel.Name}\"");
                 return true;
             }
@@ -97,6 +97,7 @@ namespace TMenu
                 Logs.Warn($"玩家 {plr.Name} 已开启过菜单 {panel.Name}");
             return false;
         }
+        public static bool OpenMenu(this TSPlayer plr, Data.MenuOriginData data, bool clone = false) => OpenMenu(plr, Core.Parser.Deserilize(data, plr), clone);
         public static bool CloseMenu(this TSPlayer plr, string name, bool log = true)
             => plr.MenuList().FirstOrDefault(m => m.Name == name) is { } menu && plr.CloseMenu(menu, log);
         public static bool CloseMenu(this TSPlayer plr, TPanel panel, bool log = true)

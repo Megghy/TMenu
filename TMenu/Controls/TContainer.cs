@@ -11,7 +11,7 @@ namespace TMenu.Controls
         {
             Init();
         }
-        public TContainer(Data.FileData data) : base(data)
+        public TContainer(Data.MenuOriginData data) : base(data)
         {
             Init();
         }

@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 using TerrariaUI.Base;
 using TerrariaUI.Base.Style;
 using TerrariaUI.Widgets;
+using TerrariaUI.Widgets.Data;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace TMenu.Controls
 {
     [NameInJson("chest")]
     internal class TChest : TMenuControlBase<VisualChest>
     {
-        public TChest(Data.FileData data) : base(data)
+        public TChest(Data.MenuOriginData data) : base(data)
         {
             Init();
         }
@@ -21,9 +23,31 @@ namespace TMenu.Controls
         {
             Init();
         }
+        public ItemData[] Items
+        {
+            get => Data.Items;
+            set
+            {
+                Data.Items = value;
+                if (TUIObject is not null)
+                {
+                    TUIObject.Set(value);
+                    TUIObject.UpdateSelf();
+                }
+            }
+        }
         public override TMenuControlBase<VisualChest> Init()
         {
-            throw new NotImplementedException();
+            if (Data.Items?.Count() < 40)
+            {
+                var list = new ItemData[40];
+                Data.Items.CopyTo(list, 0);
+                Data.Items = list;
+            }
+            TUIObject = new(Data.X, Data.Y, Data.Items, Data.Config, Data.Style, OnClick);
+            TUIObject.DrawWithSection = true;
+            TUIObject.FrameSection = true;
+            return this;
         }
     }
 }

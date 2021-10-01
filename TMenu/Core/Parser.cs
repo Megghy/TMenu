@@ -1,63 +1,49 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json.Linq;
 using TMenu.Controls;
 using TShockAPI;
 
 namespace TMenu.Core
 {
-    internal class Parser
+    public static class Parser
     {
-        //todo
-        /*public static Json Instance = new();
-        public List<DeserilzerBase<VisualObject>> Deserlizers = new();
-        public class TMenuFileDeserilzer<T> : JsonConverter
+        public static TPanel DeserilizeFromFile(string path, TSPlayer plr) => Deserilize(ReadOriginDataFromFile(path), plr);
+        public static TPanel Deserilize(this Data.MenuOriginData data, TSPlayer plr)
         {
-            public override bool CanConvert(Type objectType)
+            try
             {
-                return objectType.IsSubclassOf(typeof(TMenuControlBase<VisualObject>));
+                data.Player = plr;
+                var menu = new TPanel(data);
+                data.Childs.ForEach(c => DeserilizeChild(menu, menu, c, plr));
+                return menu;
             }
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            catch (Exception ex)
             {
-                var json = JObject.Load(reader);
-                if (json.TryGetValue("menu", StringComparison.CurrentCultureIgnoreCase, out var menuJson))
-                {
-                    if (menuJson.Children)
+                Logs.Error($"无法加载菜单 {data.Name}\r\n{ex}");
             }
-                else
-                    throw new("");
-                bool TryParsePanel()
+            return null;
+            void DeserilizeChild(TPanel root, dynamic parent, Data.MenuOriginData data, TSPlayer plr)
+            {
+                if (TryParseControl(data, plr, out var tempControl))
                 {
-
+                    tempControl.RootPanel = root;
+                    tempControl.Data = data;
+                    data.Parent = tempControl;
+                    parent.TUIObject.Add(tempControl.TUIObject);
+                    data.Childs.ForEach(c => DeserilizeChild(root, tempControl, c, plr));
                 }
-            }
-
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                throw new NotImplementedException();
+                else
+                    Logs.Error($"An error occurred when initlizing \"{root.Name}\", located in \"{data.Name}\".");
+                
             }
         }
-        public abstract class DeserilzerBase<T> where T : VisualObject
-        {
-            public DeserilzerBase()
-            {
-                Register();
-            }
-            public virtual void Register()
-            {
-                //Json.Instance.Deserlizers.Add(this);
-            }
-            public abstract TMenuControlBase<T> Deserlize(JObject jobj);
-        }
-        */
-        public static TPanel Deserilize(string path, TSPlayer plr = null)
+        public static Data.MenuOriginData ReadOriginDataFromFile(string path)
         {
             try
             {
                 if (File.Exists(path))
-                    return DeserilizeInner(path, File.ReadAllText(path), plr);
+                    return ReadOriginDataInner(path, File.ReadAllText(path));
             }
             catch (Exception ex)
             {
@@ -65,7 +51,7 @@ namespace TMenu.Core
             }
             return null;
         }
-        internal static TPanel DeserilizeInner(string path, string text, TSPlayer plr = null)
+        public static Data.MenuOriginData ReadOriginDataInner(string path, string text)
         {
             try
             {
@@ -73,14 +59,11 @@ namespace TMenu.Core
                 {
                     if (json.TryGetValue("menu", StringComparison.CurrentCultureIgnoreCase, out var menuJson))
                     {
-                        if (Data.FileData.TryParseFromJson(menuJson, out var data))
+                        if (Data.MenuOriginData.TryParseFromJson(menuJson, out var data))
                         {
                             data.Path = path;
-                            data.Player = plr; //用于计算里面的各种变量 为空则只加载信息
-                            var tempPanel = new TPanel(data);
-                            tempPanel.RootPanel = tempPanel;
-                            ParseChilds(tempPanel, tempPanel, menuJson);
-                            return tempPanel;
+                            ReadChild(data, menuJson);
+                            return data;
                         }
                         //throw new("Unable to read menu file, please check if the format is correct.");
                         throw new("无法读取菜单文件, 请检查格式.");
@@ -97,43 +80,50 @@ namespace TMenu.Core
             {
                 throw ex;
             }
-        }
-        private static void ParseChilds(TPanel root, dynamic parent, JToken json)
-        {
-            if (json.Value<JArray>("child") is { } childs)
+            void ReadChild(Data.MenuOriginData parent, JToken json)
             {
-                childs.ForEach(c =>
+                if (json.Value<JArray>("child") is { } childs)
                 {
-                    if (c.Value<string>("type") is { } typeName && Data.ControlName.FirstOrDefault(c => c.Value == typeName.ToLower()) is { Key: not null } type)
+                    childs.ForEach(c =>
                     {
-                        if (type.Value == "panel")
-                            Logs.Error($"Cannot continue to add panels inside the menu.");
-                        else if (TryParseControl(c, type.Key, out dynamic tempControl))
+                        if (c.Value<string>("type") is { } typeName && Data.ControlName.TryGetValue(typeName, out var t))
                         {
-                            ParseChilds(root, tempControl, c);
-                            tempControl.RootPanel = root;
-                            parent.TUIObject.Add(tempControl.TUIObject);
+                            if (t == typeof(TPanel))
+                                Logs.Error($"Cannot continue to add panels inside the menu.");
+                            else
+                            {
+                                try
+                                {
+                                    if (Data.MenuOriginData.ParseFromJson(c) is { } tempData)
+                                    {
+                                        ReadChild(tempData, c);
+                                        parent.Childs.Add(tempData);
+                                    }
+                                    else
+                                        Logs.Error("Unknown error.");
+                                }
+                                catch(Exception ex)
+                                {
+                                    Logs.Error($"An error occurred when initlizing \"{json.Root["menu"].Value<string>("name")}\", located in \"{c.Value<string>("name")}\".\r\n{ex}");
+                                }
+                            }   
                         }
                         else
-                            Logs.Error($"An error occurred when initlizing \"{json.Root["menu"].Value<string>("name")}\", located in \"{json.Value<string>("name")}\".");
-                    }
-                    else
-                        Logs.Error($"Cannot find control named: \"{c.Value<string>("type")}\".");
-                });
+                            Logs.Error($"Cannot find control named: \"{c.Value<string>("type")}\".");
+                    });
+                }
             }
         }
-        private static bool TryParseControl(JToken json, Type t, out object control)
+        private static bool TryParseControl(Data.MenuOriginData data, TSPlayer plr, out dynamic control)
         {
-            if (Data.FileData.TryParseFromJson(json, out var data))
+            if (Data.ControlName.TryGetValue(data.Type, out var t))
             {
+                data.Player = plr;
                 control = Activator.CreateInstance(t, new object[] { data });
                 return true;
             }
-            else
-            {
-                control = default;
-                return false;
-            }
+            control = false;
+            return false;
         }
     }
 }

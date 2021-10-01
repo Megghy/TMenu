@@ -22,27 +22,14 @@ namespace TMenu.Controls
     /// </summary>
     public abstract partial class TMenuControlBase<T> where T : VisualObject
     {
-        /// <summary>
-        /// 由于tui的控件类型不能强制转换 需要自己在派生的构造函数里实例化tui对象
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="configuration"></param>
-        /// <param name="style"></param>
-        public TMenuControlBase(string name, string x, string y, string width, string height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
+        public TMenuControlBase(string name, string x, string y, string width, string height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null) : this(new(name, x, y, width, height, "", configuration, style, clickCommand))
         {
-            Name = name;
-            Data = new(name, x, y, width, height, "", configuration, style, clickCommand);
-
-            //TUIObject = (T)Activator.CreateInstance(typeof(VisualObject), new object[] { x, y, width, height, configuration, style });
         }
-        public TMenuControlBase(Data.FileData data)
+        public TMenuControlBase(Data.MenuOriginData data)
         {
             Name = data.Name;
             Data = data;
+            Data.Parent = this;
         }
         [JsonIgnore]
         public Type Type => typeof(T);
@@ -76,7 +63,7 @@ namespace TMenu.Controls
             }
         }
         public Data.Click Click => Data.ClickCommand;
-        public Data.FileData Data { get; set; } = new();
+        public Data.MenuOriginData Data { get; set; } = new();
         [JsonIgnore]
         public T TUIObject { get; internal set; }
     }

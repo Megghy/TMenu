@@ -12,7 +12,7 @@ namespace TMenu.Controls
             Data.Text = text;
             Init();
         }
-        public TButton(Data.FileData data) : base(data)
+        public TButton(Data.MenuOriginData data) : base(data)
         {
             Init();
         }

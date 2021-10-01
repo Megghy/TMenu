@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Text;
+using Microsoft.Xna.Framework;
 using TerrariaUI.Base;
 using TerrariaUI.Widgets;
 using TMenu.Controls;
@@ -48,7 +49,7 @@ namespace TMenu.Core
         }
         private static void Create(TSPlayer plr, string name)
         {
-            if (Files.FindMenu(name) is { } menu)
+            if (IO.FindMenu(name) is { } menu)
             {
                 if (!plr.OpenMenu(menu))
                     plr.SendErrorMessage($"你已开启过了菜单: \"{menu.Name}\"");
@@ -63,27 +64,27 @@ namespace TMenu.Core
         }
         internal static void Info(TSPlayer plr, string name)
         {
-            if (Files.FindMenuLike(name) is { Count: > 0 } list)
+            if (IO.FindMenuLike(name) is { Count: > 0 } list)
             {
                 if (list.Count > 1)
                     plr.SendMultipleMatchError(list.Select(m => m.Name));
                 else
-                    plr.SendInfoMessage(GetInfoString(list.First()));
+                    plr.SendMessage(GetInfoString(list.First()), Color.White);
             }
             else
                 plr.SendErrorMessage($"未找到名称中包含 {name} 的菜单.");
-            string GetInfoString(TPanel menu)
+            string GetInfoString(Data.MenuOriginData mData)
             {
                 var sb = new StringBuilder();
-                sb.AppendLine($"> {menu.Name.Color("9ECEDB")} {{{menu.ID}}} <");
+                sb.AppendLine($"> {mData.Name.Color("9ECEDB")} <Personal: {mData.Personal}> <");
                 sb.AppendLine($"-----------------------------------------");
-                AddChild(sb, "-- ", menu.TUIObject);
+                AddChild(sb, "-- ", mData);
                 return sb.ToString();
             }
-            void AddChild(StringBuilder sb, string prefix, VisualObject obj)
+            void AddChild(StringBuilder sb, string prefix, Data.MenuOriginData mData)
             {
-                sb.AppendLine($"{prefix}| {obj.GetType().Name.Color("9EA4DB")} <{obj.X}, {obj.Y}> {(obj.GetType().IsSubclassOf(typeof(Label)) ? obj.GetType().GetProperty("RawText").GetValue(obj) : "")}");
-                obj.Child.ForEach(c => AddChild(sb, prefix + "-- ", c));
+                sb.AppendLine($"{prefix}| {(Data.ControlName.TryGetValue(mData.Type, out var t) ? t.Name : "Unknown").Color("9EA4DB")} <X: {mData.OriginX}, Y: {mData.OriginY}, Width: {mData.OriginWidth}, Height: {mData.OriginHeight}> {mData.Text}");
+                mData.Childs.ForEach(c => AddChild(sb, prefix + "-- ", c));
             }
         }
     }

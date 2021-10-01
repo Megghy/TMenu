@@ -88,7 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="Controls\TArror.cs" />
+    <Compile Include="Controls\TArrow.cs" />
     <Compile Include="Controls\TChest.cs" />
     <Compile Include="Controls\TCloseButton.cs" />
     <Compile Include="Controls\TContainer.cs" />

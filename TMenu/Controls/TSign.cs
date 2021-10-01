@@ -13,7 +13,7 @@ namespace TMenu.Controls
     [NameInJson("sign")]
     public class TSign : TMenuControlBase<VisualSign>
     {
-        public TSign(Data.FileData data) : base(data)
+        public TSign(Data.MenuOriginData data) : base(data)
         {
             Init();
         }

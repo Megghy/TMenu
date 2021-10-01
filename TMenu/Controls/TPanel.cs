@@ -10,14 +10,14 @@ namespace TMenu.Controls
 {
     [Serializable]
     [NameInJson("panel")]
-    public class TPanel : TMenuControlBase<Panel>, ICloneable
+    public class TPanel : TMenuControlBase<Panel>
     {
         public TPanel(string name, string x, string y, string width, string height, UIConfiguration configuration = null, UIStyle style = null, Data.Click clickCommand = null)
             : base(name, x, y, width, height, configuration, style, clickCommand)
         {
             Init();
         }
-        public TPanel(Data.FileData data) : base(data)
+        public TPanel(Data.MenuOriginData data) : base(data)
         {
             Init();
         }
@@ -50,11 +50,7 @@ namespace TMenu.Controls
 
         public object Clone(TSPlayer plr)
         {
-            return Core.Parser.Deserilize(Data.Path, plr);
-        }
-        public object Clone()
-        {
-            return IsFromFile ? Core.Parser.Deserilize(Data.Path) : Utils.CreateClone(this);
+            return Core.Parser.DeserilizeFromFile(Data.Path, plr);
         }
     }
 }
